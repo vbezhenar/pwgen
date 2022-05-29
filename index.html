@@ -1,0 +1,143 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name=viewport content="width=device-width, initial-scale=1">
+<title>Password Generator</title>
+<style>
+    .password {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        font-family: monospace;
+        font-size: xx-large;
+    }
+</style>
+
+<table>
+    <tr>
+        <td><label for="numberOfPasswords">Number of passwords:</label></td>
+        <td><input id="numberOfPasswords" type="number" min="1" max="100" value="10"></td>
+    </tr>
+    <tr>
+        <td><label for="passwordLength">Password length:</label></td>
+        <td><input id="passwordLength" type="number" min="1" max="100" value="10"></td>
+    </tr>
+</table>
+
+<fieldset>
+    <legend>Characters</legend>
+    <label><input type=checkbox id="charactersLettersUppercase" checked> A-Z</label><br>
+    <label><input type=checkbox id="charactersLettersLowercase" checked> a-z</label><br>
+    <label><input type=checkbox id="charactersDigits" checked> 0-9</label><br>
+    <label><input type=checkbox id="charactersUnderscore" checked> _</label><br>
+    <label><input type=checkbox id="charactersSymbols" checked> `~!@#$%^&*()-_=+[{]}\|;:'",&lt;.&gt;/?</label><br>
+    <label><input type="checkbox" id="excludeLookalike"> Exclude IOQilo01|</label>
+</fieldset>
+
+<p>
+    <button id="generate">Generate</button>
+</p>
+
+<div id="passwords">
+    <p>Please wait
+</div>
+
+<script>
+    (() => {
+        generate();
+
+        document.getElementById("numberOfPasswords").addEventListener("change", generate);
+        document.getElementById("passwordLength").addEventListener("change", generate);
+        document.getElementById("charactersLettersUppercase").addEventListener("change", generate);
+        document.getElementById("charactersLettersLowercase").addEventListener("change", generate);
+        document.getElementById("charactersDigits").addEventListener("change", generate);
+        document.getElementById("charactersUnderscore").addEventListener("change", generate);
+        document.getElementById("charactersSymbols").addEventListener("change", generate);
+        document.getElementById("excludeLookalike").addEventListener("change", generate);
+        document.getElementById("generate").addEventListener("click", generate);
+
+        function generate() {
+            const numberOfPasswords = document.getElementById("numberOfPasswords").valueAsNumber;
+            const passwordLength = document.getElementById("passwordLength").valueAsNumber;
+
+            const charactersLettersUppercase = document.getElementById("charactersLettersUppercase").checked;
+            const charactersLettersLowercase = document.getElementById("charactersLettersLowercase").checked;
+            const charactersDigits = document.getElementById("charactersDigits").checked;
+            const charactersUnderscore = document.getElementById("charactersUnderscore").checked;
+            const charactersSymbols = document.getElementById("charactersSymbols").checked;
+            const excludeLookalike = document.getElementById("excludeLookalike").checked;
+
+            const groups = [];
+            if (charactersLettersUppercase) {
+                groups.push("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+            }
+            if (charactersLettersLowercase) {
+                groups.push("abcdefghijklmnopqrstuvwxyz")
+            }
+            if (charactersDigits) {
+                groups.push("0123456789")
+            }
+            if (charactersUnderscore && !charactersSymbols) {
+                groups.push("_")
+            }
+            if (charactersSymbols) {
+                groups.push("`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?");
+            }
+            if (excludeLookalike) {
+                for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
+                    groups[groupIndex] = groups[groupIndex].replaceAll(/[IOQilo01|]/g, "");
+                }
+            }
+            if (groups.length === 0) {
+                document.getElementById("passwords").replaceChildren();
+                return;
+            }
+            const characters = groups.join("");
+
+            const passwordsFragment = new DocumentFragment();
+            for (let passwordCounter = 0; passwordCounter < numberOfPasswords; passwordCounter++) {
+                let password = [];
+                for (let group of groups) {
+                    password.push(group[randomUint8(group.length)]);
+                }
+                while (password.length < passwordLength) {
+                    password.push(characters[randomUint8(characters.length)]);
+                }
+                for (let i = password.length - 1; i >= 1; i--) {
+                    const j = randomUint8(i + 1);
+                    const tmp = password[i];
+                    password[i] = password[j];
+                    password[j] = tmp;
+                }
+                const inputElement = document.createElement("input");
+                inputElement.setAttribute("class", "password");
+                inputElement.setAttribute("readonly", "readonly");
+                inputElement.setAttribute("value", password.join(""));
+                inputElement.addEventListener("focus", copyPassword);
+                passwordsFragment.appendChild(inputElement);
+            }
+
+            document.getElementById("passwords").replaceChildren(passwordsFragment);
+        }
+
+        function randomUint8(until) {
+            let n = 1;
+            while (n < until) {
+                n *= 2;
+            }
+            const array = new Uint8Array(1);
+            while (true) {
+                crypto.getRandomValues(array);
+                const x = array[0] % n;
+                if (x < until) {
+                    return x;
+                }
+            }
+        }
+
+        function copyPassword(event) {
+            const input = event.target;
+            navigator.clipboard.writeText(input.value);
+            input.select();
+        }
+    })();
+</script>
