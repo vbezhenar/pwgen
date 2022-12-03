@@ -88,7 +88,7 @@
 
   <template id=password-container-template>
     <div class=password-container>
-      <input class=password type=text readonly=readonly>
+      <input class=password type=password readonly=readonly>
       <button class=copy-password>&#x1F5CE;</button>
     </div>
   </template>
@@ -184,7 +184,10 @@
         const passwordElement = passwordContainer.querySelector('.password');
         const copyPasswordElement = passwordContainer.querySelector('.copy-password');
         passwordElement.value = password;
-        passwordElement.addEventListener('focus', () => event.target.select());
+        passwordElement.addEventListener('focus', () => {
+          event.target.type = 'text';
+          event.target.select();
+        });
         copyPasswordElement.addEventListener('click', () => navigator.clipboard.writeText(password));
         passwordsFragment.appendChild(passwordContainer);
       }
