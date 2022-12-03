@@ -1,143 +1,238 @@
 <!doctype html>
-<meta charset="utf-8">
-<meta name=viewport content="width=device-width, initial-scale=1">
-<title>Password Generator</title>
-<style>
-    .password {
-        display: block;
-        width: 100%;
-        box-sizing: border-box;
-        font-family: monospace;
-        font-size: xx-large;
+
+<html lang=en>
+
+<head>
+  <meta charset=utf-8>
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <title>Password Generator</title>
+  <link rel="shortcut icon"
+    href='data:image/svg+xml,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">%3ccircle cx="25" cy="50" r="20"/>%3ccircle cx="75" cy="50" r="20"/>%3c/svg>'>
+
+  <style>
+    .error-message {
+      padding: 10px;
+      background: #faa;
     }
-</style>
 
-<table>
-    <tr>
-        <td><label for="numberOfPasswords">Number of passwords:</label></td>
-        <td><input id="numberOfPasswords" type="number" min="1" max="100" value="10"></td>
-    </tr>
-    <tr>
-        <td><label for="passwordLength">Password length:</label></td>
-        <td><input id="passwordLength" type="number" min="1" max="100" value="10"></td>
-    </tr>
-</table>
+    fieldset,
+    #passwords {
+      margin: 0 auto 20px;
+      max-width: 400px;
+    }
 
-<fieldset>
+    #characters label {
+      display: block;
+      padding: 5px 0;
+    }
+
+    #characters input {
+      vertical-align: middle;
+    }
+
+    .characters {
+      font-size: large;
+      font-family: monospace;
+    }
+
+    #length-container input {
+      width: 100%;
+    }
+
+    .password-container {
+      display: flex;
+      margin: 5px 0;
+    }
+
+    .password {
+      width: 100%;
+      font-family: monospace;
+      font-size: xx-large;
+    }
+
+    .copy-password {
+      font-size: xx-large;
+    }
+
+    #source-link {
+      font-size: xx-small;
+      float: right;
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>
+    <div class=error-message>JavaScript is required</div>
+  </noscript>
+  <div id=error-message class=error-message style="display: none">Error occured</div>
+
+  <fieldset id=characters>
     <legend>Characters</legend>
-    <label><input type=checkbox id="charactersLettersUppercase" checked> A-Z</label><br>
-    <label><input type=checkbox id="charactersLettersLowercase" checked> a-z</label><br>
-    <label><input type=checkbox id="charactersDigits" checked> 0-9</label><br>
-    <label><input type=checkbox id="charactersUnderscore" checked> _</label><br>
-    <label><input type=checkbox id="charactersSymbols" checked> `~!@#$%^&*()-_=+[{]}\|;:'",&lt;.&gt;/?</label><br>
-    <label><input type="checkbox" id="excludeLookalike"> Exclude IOQilo01|</label>
-</fieldset>
+    <label><input type=checkbox id=lowerCaseLetters checked> <span class=characters>a-z</span></label>
+    <label><input type=checkbox id=upperCaseLetters checked> <span class=characters>A-Z</span></label>
+    <label><input type=checkbox id=digits checked> <span class=characters>0-9</span></label>
+    <label><input type=checkbox id=specialCharacters checked>
+      <span class=characters>@#$%.,:;'`!?_()[]{}~&amp;|^+-*/\=&lt;&gt;</span>
+    </label>
+    <label><input type=checkbox id=hyphen> <span class=characters>-</span></label>
+    <label><input type=checkbox id=excludeLookalike> Exclude <span class=characters>IOQilo01!|`</span></label>
+  </fieldset>
 
-<p>
-    <button id="generate">Generate</button>
-</p>
+  <fieldset id=length-container>
+    <legend>Length <span id=length-legend>12</span></legend>
+    <input type=range id=length min=8 max=24 value=12 />
+  </fieldset>
 
-<div id="passwords">
-    <p>Please wait
-</div>
+  <div id=passwords></div>
 
-<script>
-    (() => {
-        generate();
+  <template id=password-container-template>
+    <div class=password-container>
+      <input class=password type=text readonly=readonly>
+      <button class=copy-password>&#x1F5CE;</button>
+    </div>
+  </template>
 
-        document.getElementById("numberOfPasswords").addEventListener("change", generate);
-        document.getElementById("passwordLength").addEventListener("change", generate);
-        document.getElementById("charactersLettersUppercase").addEventListener("change", generate);
-        document.getElementById("charactersLettersLowercase").addEventListener("change", generate);
-        document.getElementById("charactersDigits").addEventListener("change", generate);
-        document.getElementById("charactersUnderscore").addEventListener("change", generate);
-        document.getElementById("charactersSymbols").addEventListener("change", generate);
-        document.getElementById("excludeLookalike").addEventListener("change", generate);
-        document.getElementById("generate").addEventListener("click", generate);
+  <a id=source-link href="https://github.com/vbezhenar/pwgen">github.com/vbezhenar/pwgen</a>
 
-        function generate() {
-            const numberOfPasswords = document.getElementById("numberOfPasswords").valueAsNumber;
-            const passwordLength = document.getElementById("passwordLength").valueAsNumber;
+  <script>
+    // if something happens, user should be informed about it
+    window.onerror = function () {
+      document.getElementById('error-message').style.display = '';
+    };
 
-            const charactersLettersUppercase = document.getElementById("charactersLettersUppercase").checked;
-            const charactersLettersLowercase = document.getElementById("charactersLettersLowercase").checked;
-            const charactersDigits = document.getElementById("charactersDigits").checked;
-            const charactersUnderscore = document.getElementById("charactersUnderscore").checked;
-            const charactersSymbols = document.getElementById("charactersSymbols").checked;
-            const excludeLookalike = document.getElementById("excludeLookalike").checked;
+    // get elements references
+    const charactersElement = document.getElementById('characters');
+    const lowerCaseLettersElement = document.getElementById('lowerCaseLetters');
+    const upperCaseLettersElement = document.getElementById('upperCaseLetters');
+    const digitsElement = document.getElementById('digits');
+    const specialCharactersElement = document.getElementById('specialCharacters');
+    const hyphenElement = document.getElementById('hyphen');
+    const excludeLookalikeElement = document.getElementById('excludeLookalike');
+    const lengthLegendElement = document.getElementById('length-legend');
+    const lengthElement = document.getElementById('length');
+    const passwordsElement = document.getElementById('passwords');
+    const passwordContainerTemplateElement = document.getElementById('password-container-template');
 
-            const groups = [];
-            if (charactersLettersUppercase) {
-                groups.push("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-            }
-            if (charactersLettersLowercase) {
-                groups.push("abcdefghijklmnopqrstuvwxyz")
-            }
-            if (charactersDigits) {
-                groups.push("0123456789")
-            }
-            if (charactersUnderscore && !charactersSymbols) {
-                groups.push("_")
-            }
-            if (charactersSymbols) {
-                groups.push("`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?");
-            }
-            if (excludeLookalike) {
-                for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
-                    groups[groupIndex] = groups[groupIndex].replaceAll(/[IOQilo01|]/g, "");
-                }
-            }
-            if (groups.length === 0) {
-                document.getElementById("passwords").replaceChildren();
-                return;
-            }
-            const characters = groups.join("");
+    // update passwords on every configuration change
+    charactersElement.addEventListener('change', () => update());
+    lengthElement.addEventListener('input', () => {
+      lengthLegendElement.textContent = lengthElement.value;
+      update();
+    });
 
-            const passwordsFragment = new DocumentFragment();
-            for (let passwordCounter = 0; passwordCounter < numberOfPasswords; passwordCounter++) {
-                let password = [];
-                for (let group of groups) {
-                    password.push(group[randomUint8(group.length)]);
-                }
-                while (password.length < passwordLength) {
-                    password.push(characters[randomUint8(characters.length)]);
-                }
-                for (let i = password.length - 1; i >= 1; i--) {
-                    const j = randomUint8(i + 1);
-                    const tmp = password[i];
-                    password[i] = password[j];
-                    password[j] = tmp;
-                }
-                const inputElement = document.createElement("input");
-                inputElement.setAttribute("class", "password");
-                inputElement.setAttribute("readonly", "readonly");
-                inputElement.setAttribute("value", password.join(""));
-                inputElement.addEventListener("focus", copyPassword);
-                passwordsFragment.appendChild(inputElement);
-            }
+    // read settings from local storage
+    const settingsStr = localStorage.getItem('settings');
+    if (settingsStr != null) {
+      try {
+        const settings = JSON.parse(settingsStr);
+        lowerCaseLettersElement.checked = settings.lowerCaseLetters;
+        upperCaseLettersElement.checked = settings.upperCaseLetters;
+        digitsElement.checked = settings.digits;
+        specialCharactersElement.checked = settings.specialCharacters;
+        hyphenElement.checked = settings.hyphen;
+        excludeLookalikeElement.checked = settings.excludeLookalike;
+        lengthElement.value = settings.length;
+        lengthLegendElement.textContent = settings.length;
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
-            document.getElementById("passwords").replaceChildren(passwordsFragment);
+    // generate passwords for the first time
+    update();
+
+    function update() {
+      // save settings to local storage
+      const settings = {
+        lowerCaseLetters: lowerCaseLettersElement.checked,
+        upperCaseLetters: upperCaseLettersElement.checked,
+        digits: digitsElement.checked,
+        specialCharacters: specialCharactersElement.checked,
+        hyphen: hyphenElement.checked,
+        excludeLookalike: excludeLookalikeElement.checked,
+        length: lengthElement.value,
+      };
+      localStorage.setItem('settings', JSON.stringify(settings));
+
+      // build character groups
+      let characterGroups = [];
+      if (lowerCaseLettersElement.checked) characterGroups.push('abcdefghijklmnopqrstuvwxyz');
+      if (upperCaseLettersElement.checked) characterGroups.push('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+      if (digitsElement.checked) characterGroups.push('0123456789');
+      if (specialCharactersElement.checked) {
+        characterGroups.push('@#$%.,:;\'"`!?_()[]{}~&|^+-*/\\=<>');
+      } else if (hyphenElement.checked) {
+        characterGroups.push('-');
+      }
+      if (excludeLookalikeElement.checked) {
+        characterGroups = characterGroups.map(s => s.replace(/I|O|Q|i|l|o|0|1|!|\||`/g, ''));
+      }
+
+      // generate passwords
+      const passwords = [];
+      if (characterGroups.length > 0) {
+        for (let i = 0; i < 4; i++) {
+          passwords.push(generatePassword(characterGroups, lengthElement.value));
         }
+      }
 
-        function randomUint8(until) {
-            let n = 1;
-            while (n < until) {
-                n *= 2;
-            }
-            const array = new Uint8Array(1);
-            while (true) {
-                crypto.getRandomValues(array);
-                const x = array[0] % n;
-                if (x < until) {
-                    return x;
-                }
-            }
-        }
+      // create password elements
+      const passwordsFragment = new DocumentFragment();
+      for (const password of passwords) {
+        const passwordContainer = passwordContainerTemplateElement.content.cloneNode(true);
+        const passwordElement = passwordContainer.querySelector('.password');
+        const copyPasswordElement = passwordContainer.querySelector('.copy-password');
+        passwordElement.value = password;
+        passwordElement.addEventListener('focus', () => event.target.select());
+        copyPasswordElement.addEventListener('click', () => navigator.clipboard.writeText(password));
+        passwordsFragment.appendChild(passwordContainer);
+      }
+      passwordsElement.replaceChildren(passwordsFragment);
+    }
 
-        function copyPassword(event) {
-            const input = event.target;
-            navigator.clipboard.writeText(input.value);
-            input.select();
-        }
-    })();
-</script>
+    function generatePassword(characterGroups, length) {
+      let password = []; // password is generated as an array of characters
+
+      // generate first characters from every group so that password will contain at least one character from each group
+      for (const characterGroup of characterGroups) {
+        password.push(characterGroup[cryptoRandomUint8(characterGroup.length)]);
+      }
+
+      // generate remaining characters
+      const allCharacters = characterGroups.join('');
+      for (let i = characterGroups.length; i < length; i++) {
+        password.push(allCharacters[cryptoRandomUint8(allCharacters.length)]);
+      }
+
+      // shuffle password
+      for (let i = password.length - 1; i >= 1; i--) {
+        const j = cryptoRandomUint8(i + 1);
+        [password[i], password[j]] = [password[j], password[i]];
+      }
+
+      // return password as a string
+      return password.join('');
+    }
+
+    function cryptoRandomUint8(until) {
+      // generate a random uint8 number in range [0, until), until <= 256
+      if (until <= 0 || until > 256) throw new Error('Illegal argument: until=' + until);
+
+      // smallest k, n = 2^k, until <= n
+      const n = 1 << (32 - Math.clz32(until - 1));
+
+      const bytes = new Uint8Array(1).fill(255); // fill with 255 to protect against malfunctioning getRandomValues
+      for (let i = 0; i < 100; i++) {
+        crypto.getRandomValues(bytes); // bytes[0] is in range [0, 256)
+        let value = bytes[0] % n; // value is in range [0, n)
+        if (value < until) return value; // ensure fair distribution
+      }
+
+      throw new Error('Failed to generate a random value'); // unlikely to happen
+    }
+  </script>
+
+</body>
+
+</html>
