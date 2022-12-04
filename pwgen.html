@@ -54,7 +54,8 @@
       font-size: xx-large;
     }
 
-    #download, #source {
+    #download,
+    #source {
       font-size: xx-small;
     }
 
@@ -65,6 +66,7 @@
     #source {
       float: right;
     }
+
   </style>
 </head>
 
@@ -96,7 +98,7 @@
   <template id=password-container-template>
     <div class=password-container>
       <input class=password type=text readonly=readonly>
-      <button class=copy-password>&#x1F5CE;</button>
+      <button class=copy-password>&#x29c9;</button>
     </div>
   </template>
 
@@ -123,35 +125,46 @@
     const passwordContainerTemplateElement = document.getElementById('password-container-template');
 
     // update passwords on every configuration change
-    charactersElement.addEventListener('change', () => update());
+    charactersElement.addEventListener('change', (event) => {
+      generatePasswords();
+      saveSettings();
+    });
     lengthElement.addEventListener('input', () => {
       lengthLegendElement.textContent = lengthElement.value;
-      update();
+      generatePasswords();
+      saveSettings();
+    });
+    window.addEventListener('pageshow', () => {
+      loadSettings();
+      generatePasswords();
     });
 
-    // read settings from local storage
-    const settingsStr = localStorage.getItem('settings');
-    if (settingsStr != null) {
-      try {
-        const settings = JSON.parse(settingsStr);
-        lowerCaseLettersElement.checked = settings.lowerCaseLetters;
-        upperCaseLettersElement.checked = settings.upperCaseLetters;
-        digitsElement.checked = settings.digits;
-        specialCharactersElement.checked = settings.specialCharacters;
-        hyphenElement.checked = settings.hyphen;
-        excludeLookalikeElement.checked = settings.excludeLookalike;
-        lengthElement.value = settings.length;
-        lengthLegendElement.textContent = settings.length;
-      } catch (e) {
-        console.error(e);
+    function loadSettings() {
+      const settingsStr = localStorage.getItem('settings');
+      if (settingsStr === null) {
+        return;
       }
+
+      let settings;
+      try {
+        settings = JSON.parse(settingsStr);
+      } catch (e) {
+        // keep default settings if localStorage contains invalid JSON
+        console.error(e);
+        return;
+      }
+
+      lowerCaseLettersElement.checked = settings.lowerCaseLetters;
+      upperCaseLettersElement.checked = settings.upperCaseLetters;
+      digitsElement.checked = settings.digits;
+      specialCharactersElement.checked = settings.specialCharacters;
+      hyphenElement.checked = settings.hyphen;
+      excludeLookalikeElement.checked = settings.excludeLookalike;
+      lengthElement.value = settings.length;
+      lengthLegendElement.textContent = settings.length;
     }
 
-    // generate passwords for the first time
-    update();
-
-    function update() {
-      // save settings to local storage
+    function saveSettings() {
       const settings = {
         lowerCaseLetters: lowerCaseLettersElement.checked,
         upperCaseLetters: upperCaseLettersElement.checked,
@@ -162,7 +175,9 @@
         length: lengthElement.value,
       };
       localStorage.setItem('settings', JSON.stringify(settings));
+    }
 
+    function generatePasswords() {
       // build character groups
       let characterGroups = [];
       if (lowerCaseLettersElement.checked) characterGroups.push('abcdefghijklmnopqrstuvwxyz');
