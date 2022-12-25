@@ -149,7 +149,7 @@
       const lengthElement = document.getElementById("length");
       const passwordsElement = document.getElementById("passwords");
       const passwordContainerTemplateElement = document.getElementById(
-        "password-container-template"
+        "password-container-template",
       );
 
       // update passwords on every configuration change
@@ -220,7 +220,7 @@
         }
         if (excludeLookalikeElement.checked) {
           characterGroups = characterGroups.map((s) =>
-            s.replace(/I|O|Q|i|l|o|0|1|!|\||`/g, "")
+            s.replace(/I|O|Q|i|l|o|0|1|!|\||`/g, ""),
           );
         }
 
@@ -229,7 +229,7 @@
         if (characterGroups.length > 0) {
           for (let i = 0; i < 4; i++) {
             passwords.push(
-              generatePassword(characterGroups, lengthElement.value)
+              generatePassword(characterGroups, lengthElement.value),
             );
           }
         }
@@ -248,7 +248,7 @@
             event.target.select();
           });
           copyPasswordElement.addEventListener("click", () =>
-            navigator.clipboard.writeText(password)
+            navigator.clipboard.writeText(password),
           );
           passwordsFragment.appendChild(passwordContainer);
         }
@@ -261,7 +261,7 @@
         // generate first characters from every group so that password will contain at least one character from each group
         for (const characterGroup of characterGroups) {
           password.push(
-            characterGroup[cryptoRandomUint8(characterGroup.length)]
+            characterGroup[cryptoRandomUint8(characterGroup.length)],
           );
         }
 
