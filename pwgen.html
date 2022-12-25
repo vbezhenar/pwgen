@@ -80,36 +80,40 @@
 
     <fieldset id="characters">
       <legend>Characters</legend>
-      <label
-        ><input type="checkbox" id="lowerCaseLetters" checked />
-        <span class="characters">a-z</span></label
-      >
-      <label
-        ><input type="checkbox" id="upperCaseLetters" checked />
-        <span class="characters">A-Z</span></label
-      >
-      <label
-        ><input type="checkbox" id="digits" checked />
-        <span class="characters">0-9</span></label
-      >
-      <label
-        ><input type="checkbox" id="specialCharacters" checked />
-        <span class="characters"
-          >@#$%.,:;'`!?_()[]{}~&amp;|^+-*/\=&lt;&gt;</span
-        >
+      <label>
+        <input type="checkbox" id="lowerCaseLetters" checked />
+        <span class="characters">a-z</span>
       </label>
-      <label
-        ><input type="checkbox" id="hyphen" />
-        <span class="characters">-</span></label
-      >
-      <label
-        ><input type="checkbox" id="excludeLookalike" /> Exclude
-        <span class="characters">IOQilo01!|`</span></label
-      >
+      <label>
+        <input type="checkbox" id="upperCaseLetters" checked />
+        <span class="characters">A-Z</span>
+      </label>
+      <label>
+        <input type="checkbox" id="digits" checked />
+        <span class="characters">0-9</span>
+      </label>
+      <label>
+        <input type="checkbox" id="specialCharacters" checked />
+        <span class="characters">
+          @#$%.,:;'`!?_()[]{}~&amp;|^+-*/\=&lt;&gt;
+        </span>
+      </label>
+      <label>
+        <input type="checkbox" id="hyphen" />
+        <span class="characters">-</span>
+      </label>
+      <label>
+        <input type="checkbox" id="excludeLookalike" />
+        Exclude
+        <span class="characters">IOQilo01!|`</span>
+      </label>
     </fieldset>
 
     <fieldset id="length-container">
-      <legend>Length <span id="length-legend">12</span></legend>
+      <legend>
+        Length
+        <span id="length-legend">12</span>
+      </legend>
       <input type="range" id="length" min="8" max="24" value="12" />
     </fieldset>
 
@@ -123,9 +127,9 @@
     </template>
 
     <a id="download" href="" download>Download</a>
-    <a id="source" href="https://github.com/vbezhenar/pwgen"
-      >GitHub.com/vbezhenar/pwgen</a
-    >
+    <a id="source" href="https://github.com/vbezhenar/pwgen">
+      GitHub.com/vbezhenar/pwgen
+    </a>
 
     <script>
       // if something happens, user should be informed about it
